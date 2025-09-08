@@ -159,3 +159,21 @@ func BenchmarkNextID(b *testing.B) {
 		g.NextID()
 	}
 }
+
+func BenchmarkNextIDParallel(b *testing.B) {
+	epoch := time.Now()
+	machineID := uint16(0)
+
+	g, err := NewGenerator(epoch, machineID)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			g.NextID()
+		}
+	})
+}
