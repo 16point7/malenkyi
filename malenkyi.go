@@ -104,7 +104,7 @@ func (g *Generator) Time(id int64) time.Time {
 }
 
 func (g *Generator) MachineID(id int64) uint16 {
-	return uint16((maxMachineID & id) >> seqBits)
+	return uint16((id >> seqBits) & maxMachineID)
 }
 
 func (g *Generator) Sequence(id int64) uint16 {
