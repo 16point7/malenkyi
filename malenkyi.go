@@ -8,13 +8,13 @@ import (
 
 // ID schema:
 //
-//  41 bits: miliseconds since epoch, ~ 69.684 years                     12 bits: sequence, [0,4095]
-//  *******   ********   ********   ********   ********   **             ****   ********
-//  *                                                      *             *             *
-// 00000000 - 00000000 - 00000000 - 00000000 - 00000000 - 00000000 - 00000000 - 00000000
-//    *                                                        *           *
-// 1 bit: signed bit, always zero                           ******   ****
-//                                                             10 bits: machine ID, [0,1023]
+// a                       b                           c             d
+// 0 - 00000000000000000000000000000000000000000 - 0000000000 - 000000000000
+//
+// a)  1 bit : signed bit, always zero
+// b) 41 bits: miliseconds since epoch, ~ 69.684 years
+// c) 10 bits: machine ID, [0,1023]
+// d) 12 bits: sequence, [0,4095]
 
 // ID generator.
 // Can be used concurrently without locks.
