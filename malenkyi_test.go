@@ -2,6 +2,8 @@ package malenkyi
 
 import (
 	"errors"
+	"slices"
+	"sync"
 	"testing"
 	"time"
 )
@@ -62,7 +64,84 @@ func TestNextID(t *testing.T) {
 
 		j++
 	}
+}
 
+func FuzzNextID(f *testing.F) {
+	f.Add(100, time.Now().Add(-time.Hour).UnixMilli(), uint16(144))
+	f.Add(1000, time.Now().Add(-24*365*7*time.Hour).UnixMilli(), uint16(1023))
+
+	const numCallsPerGoroutine = 1000
+
+	f.Fuzz(func(t *testing.T, numGoroutines int, epochMs int64, machineID uint16) {
+		if numGoroutines <= 0 || numGoroutines > 1000 {
+			numGoroutines = 100
+		}
+
+		nowMs := time.Now().UnixMilli()
+		if epochMs > nowMs {
+			return
+		}
+
+		if machineID > maxMachineID {
+			return
+		}
+
+		g, err := NewGenerator(time.UnixMilli(epochMs), machineID)
+		if err != nil {
+			t.Fatalf("failed to create generator: %v\n", err)
+		}
+
+		wg := sync.WaitGroup{}
+		wg.Add(numGoroutines)
+
+		resultChan := make(chan []int64, numGoroutines)
+
+		for range numGoroutines {
+			go func() {
+				results := make([]int64, 0, numCallsPerGoroutine)
+				for range numCallsPerGoroutine {
+					results = append(results, g.NextID())
+				}
+				resultChan <- results
+				wg.Done()
+			}()
+		}
+
+		wg.Wait()
+		close(resultChan)
+
+		results := make([]int64, 0, numGoroutines*numCallsPerGoroutine)
+		for result := range resultChan {
+			results = append(results, result...)
+		}
+
+		slices.Sort(results)
+
+		var prevSeq uint16
+		var prevTs time.Time
+		for _, id := range results {
+			gotTs, gotMachineID, gotSeq := g.Decompose(id)
+
+			if gotMachineID != machineID {
+				t.Fatalf("wrong machine id. got %d, want %d", gotMachineID, machineID)
+			}
+
+			if gotSeq == 0 {
+				if !gotTs.After(prevTs) {
+					t.Fatal("sequence reset should only happen when time is advanced")
+				}
+			} else {
+				if !gotTs.Equal(prevTs) {
+					t.Fatal("sequence advance should only happen in same time window")
+				}
+				if gotSeq != prevSeq+1 {
+					t.Fatalf("sequence should only advance by 1. got %d, want %d", gotSeq, prevSeq+1)
+				}
+			}
+			prevSeq = gotSeq
+			prevTs = gotTs
+		}
+	})
 }
 
 func BenchmarkNextID(b *testing.B) {
