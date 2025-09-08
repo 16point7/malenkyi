@@ -1,6 +1,6 @@
 # malenkyi
 
-маленький (malénʹkyj) adj. little, small, or tiny, often carrying an affectionate or tender nuance.
+маленький (malénʹkyj) *adj.* little, small, or tiny, often carrying an affectionate or tender nuance.
 
 ## Description
 Lock-free, 64-bit ID generator. Supports up to 1024 machines generating 4096 IDs every milisecond for ~69.7 years.
@@ -24,10 +24,10 @@ g.Sequence(id)   // 1
 
 IDs are `int64`.
 
-Bit 63: Signed bit. Always zero.
-Bits 62-22: Time since epoch in miliseconds. Capacity is ~69.7 years.
-Bits 21-12: Machine ID. Range is [0,1023].
-Bits 11-0: Sequence number. Range is [0,4095].
+- Bit 63: Signed bit. Always zero.
+- Bits 62-22: Time since epoch in miliseconds. Capacity is ~69.7 years.
+- Bits 21-12: Machine ID. Range is [0,1023].
+- Bits 11-0: Sequence number. Range is [0,4095].
 
 Calling `NextID()` will panic if time has overflowed the capacity (41 bits).
 
