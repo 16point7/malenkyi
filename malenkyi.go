@@ -12,7 +12,7 @@ import (
 // 0 - 00000000000000000000000000000000000000000 - 0000000000 - 000000000000
 //
 // a)  1 bit : signed bit, always zero
-// b) 41 bits: miliseconds since epoch, ~ 69.684 years
+// b) 41 bits: milliseconds since epoch, ~ 69.684 years
 // c) 10 bits: machine ID, [0,1023]
 // d) 12 bits: sequence, [0,4095]
 
